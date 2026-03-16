@@ -1,6 +1,6 @@
-# batdongsan.com.vn Crawler
+# batdongsan.com.vn Apartment Data
 
-Crawl apartment listing data from [batdongsan.com.vn](https://batdongsan.com.vn/ban-can-ho-chung-cu) for ML/data analysis projects.
+Crawl, clean, and analyze apartment listing data from [batdongsan.com.vn](https://batdongsan.com.vn/ban-can-ho-chung-cu).
 
 Uses headless Chrome via Playwright with stealth to bypass bot detection. Supports parallel workers for fast crawling.
 
@@ -54,6 +54,52 @@ tail -f crawl.log
 4. Browser is restarted every 20 pages to prevent memory leaks
 5. Each worker writes results to its own `.tmp` CSV file (crash-safe)
 6. After all workers finish, `.tmp` files are merged, deduplicated, and sorted into the final CSV
+
+## Data cleaning
+
+```bash
+python clean.py
+```
+
+Produces `apartments_cleaned.csv` and `apartments.db` (SQLite) with:
+
+- **Parsed numeric columns**: `price_billion` (tỷ), `area_m2`, `price_per_m2_million` (triệu/m²)
+- **Missing value handling**: drops empty titles, converts bedrooms/bathrooms to nullable ints
+- **Standardized locations**: strips "(... mới)" suffixes, maps to Vietnam's 34 provinces (2025 reform)
+
+## Analysis
+
+Query the SQLite database with [litecli](https://litecli.com/):
+
+```bash
+pip install litecli
+litecli apartments.db
+```
+
+```sql
+-- Median price per m² by province
+WITH ranked AS (
+    SELECT location, price_per_m2_million,
+           ROW_NUMBER() OVER (PARTITION BY location ORDER BY price_per_m2_million) as rn,
+           COUNT(*) OVER (PARTITION BY location) as cnt
+    FROM apartments WHERE price_per_m2_million IS NOT NULL
+)
+SELECT location, cnt, ROUND(AVG(price_per_m2_million), 1) as median_price
+FROM ranked WHERE rn IN (cnt/2, cnt/2 + 1)
+GROUP BY location ORDER BY median_price DESC;
+```
+
+## Heatmap
+
+Generate a choropleth map of Vietnam (new 34-province boundaries) with median price/m² and listing volume:
+
+```bash
+pip install geopandas folium
+python heatmap.py
+# Open heatmap.html in browser
+```
+
+Color = median price per m², bubble size = number of listings.
 
 ## Notes
 

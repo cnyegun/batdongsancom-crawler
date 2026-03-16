@@ -101,6 +101,8 @@ python heatmap.py
 
 Color = median price per m², bubble size = number of listings.
 
+![Vietnam apartment price heatmap](pic.png)
+
 ## Notes
 
 - Each page has ~20 listings. The site currently has ~43,000 total listings (~2184 pages).

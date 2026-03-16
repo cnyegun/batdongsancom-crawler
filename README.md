@@ -1,5 +1,7 @@
 # batdongsan.com.vn Apartment Data
 
+![Vietnam apartment price heatmap](pic.png)
+
 Crawl, clean, and analyze apartment listing data from [batdongsan.com.vn](https://batdongsan.com.vn/ban-can-ho-chung-cu).
 
 Uses headless Chrome via Playwright with stealth to bypass bot detection. Supports parallel workers for fast crawling.
@@ -100,8 +102,6 @@ python heatmap.py
 ```
 
 Color = median price per m², bubble size = number of listings.
-
-![Vietnam apartment price heatmap](pic.png)
 
 ## Notes
 
